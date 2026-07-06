@@ -1,0 +1,35 @@
+# === KumaStream — single project .gitignore ===
+
+# Build output (root + all modules, e.g. app/build)
+build/
+.gradle/
+/captures
+*.apk
+*.aar
+*.ap_
+*.aab
+
+# Local, machine-specific configuration
+local.properties
+
+# Secrets (API keys such as PEXELS_API_KEY) — never commit
+secrets.properties
+
+# Signing material
+*.jks
+*.keystore
+keystore.properties
+
+# Kotlin
+.kotlin
+
+# Android Studio / IntelliJ — ignore IDE config entirely
+.idea/
+*.iml
+
+# NDK
+.externalNativeBuild
+.cxx
+
+# OS cruft
+.DS_Store

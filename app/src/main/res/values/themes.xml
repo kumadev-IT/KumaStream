@@ -1,0 +1,7 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base theme for the Activity window. Colors are supplied by the Compose
+         Material3 theme at runtime; this only needs to be a NoActionBar base. -->
+    <style name="Theme.KumaStream" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+    </style>
+</resources>
