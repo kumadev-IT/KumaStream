@@ -1,9 +1,11 @@
 package com.kumadev.kumastream.di
 
+import com.kumadev.kumastream.data.preferences.FilterPreferencesRepositoryImpl
 import com.kumadev.kumastream.data.repository.CategoryRepositoryImpl
 import com.kumadev.kumastream.data.repository.EventRepositoryImpl
 import com.kumadev.kumastream.domain.repository.CategoryRepository
 import com.kumadev.kumastream.domain.repository.EventRepository
+import com.kumadev.kumastream.domain.repository.FilterPreferencesRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -22,4 +24,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindCategoryRepository(impl: CategoryRepositoryImpl): CategoryRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindFilterPreferencesRepository(
+        impl: FilterPreferencesRepositoryImpl,
+    ): FilterPreferencesRepository
 }

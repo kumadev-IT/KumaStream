@@ -4,13 +4,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.EventNote
 import androidx.compose.material3.CircularProgressIndicator
@@ -21,10 +24,13 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,15 +43,17 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kumadev.kumastream.domain.model.Event
+import com.kumadev.kumastream.domain.model.EventFilters
 import com.kumadev.kumastream.ui.home.components.DayHeader
 import com.kumadev.kumastream.ui.home.components.EventCard
 import com.kumadev.kumastream.ui.theme.LocalSpacing
 import java.time.LocalDate
 
 /**
- * Home / List (design §5.1): top bar with an overflow menu, a day-grouped feed
- * of upcoming events, and a FAB to add. Empty and loading states handled.
- * Filter toggles (design §5.6) are a later task (#10) and are not wired yet.
+ * Home / List (design §5.1): top bar with a filter action + overflow menu, a
+ * day-grouped feed of upcoming events, and a FAB to add. Filter toggles
+ * (design §5.6) open a bottom sheet and persist via DataStore. Empty and
+ * loading states handled.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,6 +67,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var showFilters by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = modifier,
@@ -67,6 +76,17 @@ fun HomeScreen(
             TopAppBar(
                 title = { Text(text = "KumaStream") },
                 actions = {
+                    IconButton(onClick = { showFilters = true }) {
+                        Icon(
+                            imageVector = Icons.Filled.FilterList,
+                            contentDescription = "Filter",
+                            tint = if (uiState.filters.anyActive) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onBackground
+                            },
+                        )
+                    }
                     OverflowMenu(
                         onOpenArchive = onOpenArchive,
                         onOpenCategories = onOpenCategories,
@@ -92,13 +112,83 @@ fun HomeScreen(
     ) { innerPadding ->
         when {
             uiState.isLoading -> LoadingState(Modifier.padding(innerPadding))
-            uiState.isEmpty -> EmptyState(Modifier.padding(innerPadding))
+            uiState.isEmpty -> EmptyState(
+                filtersActive = uiState.filters.anyActive,
+                modifier = Modifier.padding(innerPadding),
+            )
             else -> EventFeed(
                 days = uiState.days,
                 contentPadding = innerPadding,
                 onOpenEvent = onOpenEvent,
             )
         }
+    }
+
+    if (showFilters) {
+        FilterSheet(
+            filters = uiState.filters,
+            onHidePersonal = viewModel::onHidePersonalChange,
+            onHideIndependent = viewModel::onHideIndependentChange,
+            onHideCompleted = viewModel::onHideCompletedChange,
+            onDismiss = { showFilters = false },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FilterSheet(
+    filters: EventFilters,
+    onHidePersonal: (Boolean) -> Unit,
+    onHideIndependent: (Boolean) -> Unit,
+    onHideCompleted: (Boolean) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val spacing = LocalSpacing.current
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(),
+        containerColor = MaterialTheme.colorScheme.surface,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = spacing.screen)
+                .padding(bottom = spacing.xxl),
+            verticalArrangement = Arrangement.spacedBy(spacing.xs),
+        ) {
+            Text(
+                text = "Filter",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(bottom = spacing.sm),
+            )
+            FilterRow("Hide personal", filters.hidePersonal, onHidePersonal)
+            FilterRow("Hide independent", filters.hideIndependent, onHideIndependent)
+            FilterRow("Hide completed", filters.hideCompleted, onHideCompleted)
+        }
+    }
+}
+
+@Composable
+private fun FilterRow(
+    label: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = LocalSpacing.current.xs),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }
 
@@ -176,7 +266,10 @@ private fun LoadingState(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun EmptyState(modifier: Modifier = Modifier) {
+private fun EmptyState(
+    filtersActive: Boolean,
+    modifier: Modifier = Modifier,
+) {
     val spacing = LocalSpacing.current
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
@@ -191,13 +284,17 @@ private fun EmptyState(modifier: Modifier = Modifier) {
                 modifier = Modifier.size(64.dp),
             )
             Text(
-                text = "No upcoming events",
+                text = if (filtersActive) "No events match your filters" else "No upcoming events",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
             )
             Text(
-                text = "Tap + to add your first one.",
+                text = if (filtersActive) {
+                    "Adjust the filter to see more."
+                } else {
+                    "Tap + to add your first one."
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,

@@ -1,6 +1,7 @@
 package com.kumadev.kumastream.ui.home
 
 import com.kumadev.kumastream.domain.model.Event
+import com.kumadev.kumastream.domain.model.EventFilters
 import java.time.LocalDate
 
 /**
@@ -20,6 +21,7 @@ data class DaySection(
 data class HomeUiState(
     val isLoading: Boolean = true,
     val days: List<DaySection> = emptyList(),
+    val filters: EventFilters = EventFilters(),
 ) {
     val isEmpty: Boolean get() = !isLoading && days.isEmpty()
 }

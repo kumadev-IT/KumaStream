@@ -89,6 +89,9 @@ dependencies {
     implementation(libs.bundles.room)
     ksp(libs.androidx.room.compiler)
 
+    // DataStore (persisted filter prefs)
+    implementation(libs.androidx.datastore.preferences)
+
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
 
