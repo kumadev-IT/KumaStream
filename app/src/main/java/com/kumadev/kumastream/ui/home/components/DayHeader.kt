@@ -29,10 +29,13 @@ fun DayHeader(
     date: LocalDate,
     isToday: Boolean,
     modifier: Modifier = Modifier,
+    accent: Color = if (isToday) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.secondary
+    },
 ) {
     val spacing = LocalSpacing.current
-    val accent: Color =
-        if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
 
     Row(
         modifier = modifier

@@ -31,6 +31,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.kumadev.kumastream.ui.addedit.AddEditScreen
+import com.kumadev.kumastream.ui.archive.ArchiveScreen
 import com.kumadev.kumastream.ui.detail.DetailScreen
 import com.kumadev.kumastream.ui.home.HomeScreen
 import com.kumadev.kumastream.ui.theme.KumaStreamTheme
@@ -118,7 +119,7 @@ fun KumaNavHost(
         }
 
         composable(Destination.Archive.route) {
-            StubDestination(title = "Past events", onBack = navController::popBackStack)
+            ArchiveScreen(onBack = navController::popBackStack)
         }
 
         composable(Destination.Settings.route) {

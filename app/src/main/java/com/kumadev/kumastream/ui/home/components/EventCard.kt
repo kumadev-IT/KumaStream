@@ -42,76 +42,95 @@ import com.kumadev.kumastream.ui.util.formatTime
 @Composable
 fun EventCard(
     event: Event,
-    onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
 ) {
+    val shape = MaterialTheme.shapes.medium
+    val surface = MaterialTheme.colorScheme.surface
+
+    if (onClick != null) {
+        Surface(
+            onClick = onClick,
+            shape = shape,
+            color = surface,
+            tonalElevation = Dimens.cardElevation,
+            modifier = modifier.fillMaxWidth(),
+        ) {
+            EventCardBody(event)
+        }
+    } else {
+        Surface(
+            shape = shape,
+            color = surface,
+            tonalElevation = Dimens.cardElevation,
+            modifier = modifier.fillMaxWidth(),
+        ) {
+            EventCardBody(event)
+        }
+    }
+}
+
+@Composable
+private fun EventCardBody(event: Event) {
     val spacing = LocalSpacing.current
     val categoryColor = Color(event.color)
     val veil = categoryColor.copy(alpha = 0.10f)
     // Fixed card height = thumbnail height + the content row's vertical padding.
     val cardHeight = Dimens.cardImageMaxHeight + spacing.md * 2
 
-    Surface(
-        onClick = onClick,
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = Dimens.cardElevation,
-        modifier = modifier.fillMaxWidth(),
-    ) {
-        Row(modifier = Modifier.height(cardHeight)) {
-            // Saturated category rail (spans the card height).
-            Box(
-                modifier = Modifier
-                    .width(Dimens.categoryRail)
-                    .fillMaxHeight()
-                    .background(categoryColor),
+    Row(modifier = Modifier.height(cardHeight)) {
+        // Saturated category rail (spans the card height).
+        Box(
+            modifier = Modifier
+                .width(Dimens.categoryRail)
+                .fillMaxHeight()
+                .background(categoryColor),
+        )
+        // Content area carries the subtle category veil over the surface.
+        Row(
+            modifier = Modifier
+                .background(veil)
+                .padding(spacing.md),
+            horizontalArrangement = Arrangement.spacedBy(spacing.md),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            EventThumbnail(
+                imageUrl = event.imageUrl,
+                emoji = event.category.icon,
+                tint = categoryColor,
             )
-            // Content area carries the subtle category veil over the surface.
-            Row(
-                modifier = Modifier
-                    .background(veil)
-                    .padding(spacing.md),
-                horizontalArrangement = Arrangement.spacedBy(spacing.md),
-                verticalAlignment = Alignment.CenterVertically,
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(spacing.xs),
             ) {
-                EventThumbnail(
-                    imageUrl = event.imageUrl,
-                    emoji = event.category.icon,
-                    tint = categoryColor,
+                Text(
+                    text = event.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(spacing.xs),
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = event.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 2,
+                        text = event.dateTime.formatTime(),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = "·",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = "${event.category.icon} ${event.category.name}",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = event.dateTime.formatTime(),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Text(
-                            text = "·",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Text(
-                            text = "${event.category.icon} ${event.category.name}",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
                 }
             }
         }
