@@ -92,6 +92,9 @@ dependencies {
     // DataStore (persisted filter prefs)
     implementation(libs.androidx.datastore.preferences)
 
+    // Chrome Custom Tabs ("search on the web" for event images)
+    implementation(libs.androidx.browser)
+
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
 

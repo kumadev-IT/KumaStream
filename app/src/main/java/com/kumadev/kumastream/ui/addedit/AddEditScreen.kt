@@ -1,9 +1,18 @@
 package com.kumadev.kumastream.ui.addedit
 
+import android.content.Context
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -47,9 +56,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
 import com.kumadev.kumastream.domain.model.EventType
+import com.kumadev.kumastream.ui.imagesearch.ImageSearchSheet
 import com.kumadev.kumastream.ui.theme.LocalSpacing
 import com.kumadev.kumastream.ui.util.formatDateTimeLong
 import java.time.Instant
@@ -72,6 +86,11 @@ fun AddEditScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val spacing = LocalSpacing.current
+    val context = LocalContext.current
+    var showStockSearch by remember { mutableStateOf(false) }
+    val pickImage = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia(),
+    ) { uri -> uri?.let(viewModel::onImagePicked) }
 
     LaunchedEffect(uiState.saved) {
         if (uiState.saved) onDone()
@@ -152,12 +171,37 @@ fun AddEditScreen(
                 onChange = viewModel::onTypeChange,
             )
 
-            ImageSectionStub(
-                hasImage = uiState.imageUrl != null,
+            ImageSection(
+                imageUrl = uiState.imageUrl,
+                onPickFromDevice = {
+                    pickImage.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+                    )
+                },
+                onSearchWeb = { openWebImageSearch(context, uiState.title) },
+                onSearchStock = { showStockSearch = true },
                 onClear = viewModel::onClearImage,
             )
         }
     }
+
+    if (showStockSearch) {
+        ImageSearchSheet(
+            initialQuery = uiState.title,
+            onDismiss = { showStockSearch = false },
+            onPick = { url ->
+                viewModel.onImageSelected(url)
+                showStockSearch = false
+            },
+        )
+    }
+}
+
+/** Opens Chrome Custom Tabs on an image web-search so the user can find & save one. */
+private fun openWebImageSearch(context: Context, query: String) {
+    val q = query.trim().ifBlank { "images" }
+    val url = "https://www.google.com/search?tbm=isch&q=${Uri.encode(q)}"
+    CustomTabsIntent.Builder().build().launchUrl(context, Uri.parse(url))
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -306,9 +350,13 @@ private fun TypeToggle(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ImageSectionStub(
-    hasImage: Boolean,
+private fun ImageSection(
+    imageUrl: String?,
+    onPickFromDevice: () -> Unit,
+    onSearchWeb: () -> Unit,
+    onSearchStock: () -> Unit,
     onClear: () -> Unit,
 ) {
     val spacing = LocalSpacing.current
@@ -318,11 +366,23 @@ private fun ImageSectionStub(
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(spacing.sm)) {
-            OutlinedButton(onClick = {}, enabled = false) {
-                Text("Search images (soon)")
-            }
-            if (hasImage) {
+        if (imageUrl != null) {
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = "Selected image",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(16f / 9f)
+                    .clip(MaterialTheme.shapes.medium),
+            )
+        }
+        // Three sources: device gallery, a web search (Custom Tab), stock (Pexels).
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(spacing.sm)) {
+            OutlinedButton(onClick = onPickFromDevice) { Text("Choose image") }
+            OutlinedButton(onClick = onSearchWeb) { Text("Search web") }
+            OutlinedButton(onClick = onSearchStock) { Text("Generic images") }
+            if (imageUrl != null) {
                 TextButton(onClick = onClear) { Text("Clear") }
             }
         }

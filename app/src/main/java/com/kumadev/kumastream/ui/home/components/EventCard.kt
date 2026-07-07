@@ -157,8 +157,10 @@ private fun EventThumbnail(
         AsyncImage(
             model = imageUrl,
             contentDescription = null, // decorative; title conveys the meaning
-            contentScale = ContentScale.Crop,
-            modifier = box,
+            // Fit (not Crop): show the whole image scaled to the card height; any
+            // side/letterbox gap sits on a faint category tint. List-only choice.
+            contentScale = ContentScale.Fit,
+            modifier = box.background(tint.copy(alpha = 0.12f)),
         )
     } else {
         Box(

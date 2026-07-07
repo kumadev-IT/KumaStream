@@ -1,8 +1,10 @@
 package com.kumadev.kumastream.ui.addedit
 
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kumadev.kumastream.data.local.image.LocalImageStore
 import com.kumadev.kumastream.domain.model.Event
 import com.kumadev.kumastream.domain.model.EventType
 import com.kumadev.kumastream.domain.repository.CategoryRepository
@@ -28,6 +30,7 @@ import javax.inject.Inject
 class AddEditViewModel @Inject constructor(
     private val eventRepository: EventRepository,
     private val categoryRepository: CategoryRepository,
+    private val localImageStore: LocalImageStore,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -87,6 +90,17 @@ class AddEditViewModel @Inject constructor(
         _uiState.update { it.copy(selectedCategoryId = categoryId) }
 
     fun onTypeChange(type: EventType) = _uiState.update { it.copy(eventType = type) }
+
+    /** A remote image chosen from the stock (Pexels) grid — stored as its URL. */
+    fun onImageSelected(url: String) = _uiState.update { it.copy(imageUrl = url) }
+
+    /** Import a picked image (Photo Picker / download) into private storage. */
+    fun onImagePicked(uri: Uri) {
+        viewModelScope.launch {
+            runCatching { localImageStore.import(uri) }
+                .onSuccess { stored -> _uiState.update { it.copy(imageUrl = stored) } }
+        }
+    }
 
     fun onClearImage() = _uiState.update { it.copy(imageUrl = null) }
 
