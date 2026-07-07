@@ -31,6 +31,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.kumadev.kumastream.ui.addedit.AddEditScreen
+import com.kumadev.kumastream.ui.detail.DetailScreen
 import com.kumadev.kumastream.ui.home.HomeScreen
 import com.kumadev.kumastream.ui.theme.KumaStreamTheme
 
@@ -102,8 +103,14 @@ fun KumaNavHost(
             arguments = listOf(
                 navArgument(Destination.Detail.ARG_EVENT_ID) { type = NavType.StringType },
             ),
-        ) {
-            StubDestination(title = "Event detail", onBack = navController::popBackStack)
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getString(Destination.Detail.ARG_EVENT_ID)
+            DetailScreen(
+                onBack = navController::popBackStack,
+                onEdit = {
+                    if (id != null) navController.navigate(Destination.AddEdit.createRoute(id))
+                },
+            )
         }
 
         composable(Destination.Categories.route) {
