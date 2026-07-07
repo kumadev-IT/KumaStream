@@ -32,6 +32,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.kumadev.kumastream.ui.addedit.AddEditScreen
 import com.kumadev.kumastream.ui.archive.ArchiveScreen
+import com.kumadev.kumastream.ui.categories.CategoriesScreen
 import com.kumadev.kumastream.ui.detail.DetailScreen
 import com.kumadev.kumastream.ui.home.HomeScreen
 import com.kumadev.kumastream.ui.theme.KumaStreamTheme
@@ -115,7 +116,7 @@ fun KumaNavHost(
         }
 
         composable(Destination.Categories.route) {
-            StubDestination(title = "Categories", onBack = navController::popBackStack)
+            CategoriesScreen(onBack = navController::popBackStack)
         }
 
         composable(Destination.Archive.route) {

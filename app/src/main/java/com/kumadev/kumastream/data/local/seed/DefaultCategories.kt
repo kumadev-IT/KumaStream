@@ -1,6 +1,7 @@
 package com.kumadev.kumastream.data.local.seed
 
 import com.kumadev.kumastream.data.local.entity.CategoryEntity
+import com.kumadev.kumastream.domain.model.PredefinedCategories
 
 /**
  * The predefined category set inserted once when the database is first created
@@ -106,4 +107,12 @@ object DefaultCategories {
             icon = "📦",
         ),
     )
+
+    init {
+        // Tripwire: the seed ids and the domain's predefined-id set must match,
+        // or "is this category locked?" checks in the UI would be wrong.
+        require(ENTITIES.map { it.id }.toSet() == PredefinedCategories.IDS) {
+            "DefaultCategories ids drifted from PredefinedCategories.IDS"
+        }
+    }
 }
