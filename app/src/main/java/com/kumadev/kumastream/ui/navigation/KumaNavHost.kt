@@ -30,6 +30,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.kumadev.kumastream.ui.addedit.AddEditScreen
 import com.kumadev.kumastream.ui.home.HomeScreen
 import com.kumadev.kumastream.ui.theme.KumaStreamTheme
 
@@ -93,7 +94,7 @@ fun KumaNavHost(
                 },
             ),
         ) {
-            StubDestination(title = "Add / Edit", onBack = navController::popBackStack)
+            AddEditScreen(onDone = navController::popBackStack)
         }
 
         composable(

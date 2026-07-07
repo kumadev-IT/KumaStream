@@ -14,8 +14,14 @@ import java.util.Locale
 private val TimeFormatter: DateTimeFormatter =
     DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault())
 
+private val DateTimeLongFormatter: DateTimeFormatter =
+    DateTimeFormatter.ofPattern("EEE, d MMM yyyy · HH:mm", Locale.getDefault())
+
 /** "09:30" — the time shown on an [com.kumadev.kumastream.domain.model.Event] card. */
 fun LocalDateTime.formatTime(): String = format(TimeFormatter)
+
+/** "Mon, 7 Jul 2026 · 09:30" — the read-out on the Add/Edit date-time field. */
+fun LocalDateTime.formatDateTimeLong(): String = format(DateTimeLongFormatter)
 
 /** Uppercase weekday abbreviation, e.g. "MON" (day-header top line). */
 fun LocalDate.weekdayShort(): String =
